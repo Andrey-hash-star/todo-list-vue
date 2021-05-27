@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/css/bootstrap.min.css"
+        integrity="sha384-r4NyP46KrjDleawBgD5tp8Y7UzmLA05oM1iAEQ17CSuDqnUK2+k9luXQOfXJCJ4I" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css">
+    <title>Todo List</title>
+</head>
+
+<body>
+    <div id="app" class="container">
+        <h1 class="text-center">Todo List</h1>
+        <div class="input-group mb-3">
+            <input v-model="title" type="text" class="text-white bg-dark form-control" placeholder="Введите новую задачу"
+                aria-label="Введите новую задачу" aria-describedby="button-addon">
+            <button @click="onSubmite" class="btn btn-outline-dark" type="button"
+                id="button-addon">Добавить</button>
+        </div>
+        <hr>
+        <hr>
+        <select v-model="filter" class="text-white bg-dark form-select form-select-sm" aria-label=".form-select-sm">
+            <option value="1">Все</option>
+            <option value="2">Активные</option>
+            <option value="3">Выполненные</option>
+        </select>
+        <hr>
+        <hr>
+        <ul v-if="todoFilter.length" class="list-group">
+            <li :class="{'text-decoration-line-through': todo.complited}"
+                class="text-white bg-dark list-group-item d-flex justify-content-between" v-for="(todo, index) of todoFilter" :key="index">
+                <input @change="[todo.complited = !todo.complited, saveTodos()]" class="form-check-input mr-1" type="checkbox">
+                {{ index + 1 }} -> {{ todo.title | uppercase }}
+                <button @click="removeTodo(todo.id)" type="button" class="text-danger close" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </li>
+        </ul>
+        <p v-else class="text-center">Список пуст.....</p>
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+    crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js"
+    integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/"
+    crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+<script>
+    new Vue({
+        el: "#app",
+        data: {
+            title: '',
+            todos: [],
+            filter: 1
+        },
+        mounted() {
+            if (localStorage.getItem('todos')) {
+                try {
+                    this.todos = JSON.parse(localStorage.getItem('todos'));
+                } catch (e) {
+                    localStorage.removeItem('todos');
+                }
+            }
+        },
+        computed: {
+            todoFilter() {
+                if (this.filter == 1) {
+                    return this.todos
+                }
+                if (this.filter == 2) {
+                    return this.todos.filter(t => !t.complited)
+                }
+                if (this.filter == 3) {
+                    return this.todos.filter(t => t.complited)
+                }
+            }
+        },
+        methods: {
+            removeTodo(id) {
+                this.todos = this.todos.filter(t => t.id !== id)
+                this.saveTodos();
+            },
+            onSubmite() {
+                if (this.title.trim()) {
+                    const newTodo = {
+                        id: Date.now(),
+                        title: this.title,
+                        complited: false
+                    }
+                    this.todos.push(newTodo)
+                    this.title = ''
+                    this.saveTodos();
+                }
+            },
+            saveTodos() {
+                console.log("saveTodos");
+                const parsed = JSON.stringify(this.todos);
+                localStorage.setItem('todos', parsed);
+            }
+        },
+        filters: {
+            uppercase(value) {
+                return value.toUpperCase()
+            }
+
+        }
+    })
+</script>
+
+</html>
